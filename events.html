@@ -55,6 +55,7 @@
 
         /**
          * Constructs a full image URL from a Sanity asset reference.
+         * This function is now more robust to handle different reference formats.
          * @param {string} assetRef - The image asset _ref string (e.g., "image-...")
          * @returns {string} The full, public image URL.
          */
@@ -62,11 +63,22 @@
             if (!assetRef || typeof assetRef !== 'string') {
                 return 'https://placehold.co/600x400/1e293b/a8a8a8?text=No+Image';
             }
-            // The format is image-{ID}-{DIMENSIONS}-{FORMAT}
+            
+            // The format is "image-{id}-{dimensions}-{format}"
+            // Split the string by hyphens to get the parts
             const parts = assetRef.split('-');
+            
+            // Check if the parts array has enough elements
+            if (parts.length < 4) {
+                // Fallback if the format is unexpected
+                return 'https://placehold.co/600x400/1e293b/a8a8a8?text=No+Image';
+            }
+
+            // Extract the parts
             const id = parts[1];
             const dimensions = parts[2];
             const format = parts[3];
+
             // Reconstruct the URL for the Sanity CDN, now including dimensions
             return `https://cdn.sanity.io/images/${sanityProjectId}/${sanityDataset}/${id}-${dimensions}.${format}`;
         }
