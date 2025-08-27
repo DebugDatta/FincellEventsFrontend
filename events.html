@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Streamlined Event Viewer</title>
-    <!-- Use Google Font: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Tailwind CSS CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -19,19 +17,15 @@
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
 
-    <!-- Main Content Container -->
     <div class="container mx-auto p-4 md:p-8">
-        <!-- Application Title -->
         <header class="text-center my-8 md:my-12">
             <h1 class="text-4xl md:text-5xl font-extrabold text-gray-800 dark:text-gray-200 tracking-tight">
                 All Events
             </h1>
         </header>
 
-        <!-- Loading & Error Message Area -->
         <div id="status-message" class="flex justify-center items-center py-12">
             <div class="flex flex-col items-center">
-                <!-- Loader SVG from Lucide Icons -->
                 <svg class="h-12 w-12 animate-spin text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                 </svg>
@@ -39,61 +33,40 @@
             </div>
         </div>
 
-        <!-- All Events Section -->
         <section id="all-events-section" class="hidden my-12">
             <div id="all-events-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                <!-- Event cards will be dynamically inserted here -->
             </div>
         </section>
     </div>
 
     <script>
-        // --- Sanity Image URL Builder ---
-        // These values have been updated with your details
         const sanityProjectId = 'qecvakma';
         const sanityDataset = 'production';
 
-        /**
-         * Constructs a full image URL from a Sanity asset reference.
-         * This function is now more robust to handle different reference formats.
-         * @param {string} assetRef - The image asset _ref string (e.g., "image-...")
-         * @returns {string} The full, public image URL.
-         */
         function getSanityImageUrl(assetRef) {
             if (!assetRef || typeof assetRef !== 'string') {
                 return 'https://placehold.co/600x400/1e293b/a8a8a8?text=No+Image';
             }
             
-            // The format is "image-{id}-{dimensions}-{format}"
-            // Split the string by hyphens to get the parts
             const parts = assetRef.split('-');
             
-            // Check if the parts array has enough elements
             if (parts.length < 4) {
-                // Fallback if the format is unexpected
                 return 'https://placehold.co/600x400/1e293b/a8a8a8?text=No+Image';
             }
 
-            // Extract the parts
             const id = parts[1];
             const dimensions = parts[2];
             const format = parts[3];
 
-            // Reconstruct the URL for the Sanity CDN, now including dimensions
             return `https://cdn.sanity.io/images/${sanityProjectId}/${sanityDataset}/${id}-${dimensions}.${format}`;
         }
 
-        // Get DOM elements for manipulation
         const statusMessage = document.getElementById('status-message');
         const allEventsSection = document.getElementById('all-events-section');
         const allEventsContainer = document.getElementById('all-events-container');
 
-        /**
-         * Fetches all event data from the API and renders it on the page.
-         */
         async function fetchAndRenderAllEvents() {
             try {
-                // Display initial loading state
                 statusMessage.innerHTML = `
                     <div class="flex flex-col items-center">
                         <svg class="h-12 w-12 animate-spin text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -109,16 +82,12 @@
                 }
                 const events = await response.json();
                 
-                // Sort all events chronologically (oldest to newest)
                 events.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-                // Clear the status message
                 statusMessage.innerHTML = '';
                 
-                // Render the event cards
                 renderAllEvents(events, allEventsContainer);
 
-                // Show the events section if events were found
                 if (events.length > 0) {
                     allEventsSection.classList.remove('hidden');
                 } else {
@@ -126,35 +95,26 @@
                 }
 
             } catch (error) {
-                // Display error message
                 statusMessage.innerHTML = `<p class="text-center text-red-500 text-lg font-medium">Error: ${error.message}</p>`;
             }
         }
 
-        /**
-         * Renders all event cards into a specified container.
-         * @param {Array} events - The array of event objects.
-         * @param {HTMLElement} container - The DOM element to render into.
-         */
         function renderAllEvents(events, container) {
-            container.innerHTML = ''; // Clear existing content
+            container.innerHTML = '';
             events.forEach(event => {
                 const isUpcoming = new Date(event.date) >= new Date();
                 const opacityClass = isUpcoming ? '' : 'opacity-75';
 
-                // Get the image URL using the corrected function
                 const imageUrl = event.image?.asset?._ref ? getSanityImageUrl(event.image.asset._ref) : 'https://placehold.co/600x400/1e293b/a8a8a8?text=No+Image';
 
                 const cardHtml = `
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg transform transition-all duration-300 overflow-hidden ${opacityClass}">
-                        <!-- Event Image -->
                         <div class="w-full h-48 overflow-hidden">
                             <img src="${imageUrl}" 
                                  alt="${event.title}" 
                                  class="w-full h-full object-cover">
                         </div>
                         
-                        <!-- Event Details -->
                         <div class="p-4 space-y-3">
                             <h3 class="text-2xl font-bold truncate text-gray-800 dark:text-gray-200">
                                 ${event.title}
@@ -181,7 +141,6 @@
             });
         }
 
-        // Initial fetch and render of all events
         fetchAndRenderAllEvents();
     </script>
 </body>
